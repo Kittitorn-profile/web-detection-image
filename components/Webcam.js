@@ -10,25 +10,42 @@ const videoConstraints = {
 };
 
 const WebcamCapture = (props) => {
-  const { onClick, value, onClose } = props;
+  const { onClick, value, onClose, dataPoint } = props;
   const classes = useStyles();
   const webcamRef = React.useRef(null);
+  const [point, setPoint] = React.useState();
 
   const handleOnCLick = () => {
     const imageSrc = webcamRef.current.getScreenshot();
     onClick(imageSrc);
   };
 
+  React.useEffect(() => {
+    if (dataPoint) {
+      setPoint(dataPoint.detected_objects);
+    } else {
+      setPoint();
+    }
+  }, [dataPoint]);
+
   return (
     <div className={classes.container}>
       {value ? (
-        <Box>
+        <Box display="flex" flexDirection="column">
           <img
             src={value ? value : "../../camera-line.svg"}
             height={value ? "100%" : 100}
             width={value ? "100%" : 100}
             style={{ objectFit: "cover", borderRadius: 6 }}
           />
+          {point &&
+            point.map((i) => (
+              <Box
+                top={i.bounding_box.top}
+                left={i.bounding_box.left}
+                className={classes.overlayBox}
+              />
+            ))}
         </Box>
       ) : (
         <Webcam
@@ -70,6 +87,7 @@ const useStyles = makeStyles(() =>
       backgroundColor: "#E1E1E1",
       borderRadius: 6,
       height: 400,
+      objectFit: "contain",
     },
     btn: {
       position: "absolute",
@@ -84,6 +102,12 @@ const useStyles = makeStyles(() =>
       borderRadius: 30,
       margin: 8,
       zIndex: 99,
+    },
+    overlayBox: {
+      height: 60,
+      width: 60,
+      position: "absolute",
+      border: `2px solid red`,
     },
   })
 );

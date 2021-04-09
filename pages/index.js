@@ -107,21 +107,21 @@ const index = () => {
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <Card className={classes.card}>
-              <Box>
-                {isOpen ? (
-                  <Webcam
-                    value={selectedFile}
-                    onClick={(e) => handleData(e)}
-                    onClose={() => handleClear()}
-                  />
-                ) : (
-                  <ImagePicker
-                    value={selectedFile}
-                    onClick={(e) => handleData(e)}
-                    onClose={() => handleClear()}
-                  />
-                )}
-              </Box>
+              {isOpen ? (
+                <Webcam
+                  value={selectedFile}
+                  onClick={(e) => handleData(e)}
+                  onClose={() => handleClear()}
+                  dataPoint={dataImg}
+                />
+              ) : (
+                <ImagePicker
+                  value={selectedFile}
+                  onClick={(e) => handleData(e)}
+                  onClose={() => handleClear()}
+                  dataPoint={dataImg}
+                />
+              )}
             </Card>
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -237,6 +237,11 @@ const useStyles = makeStyles(() =>
       padding: 16,
       height: "100%",
       width: "100%",
+    },
+    overlayBox: {
+      height: 100,
+      width: 100,
+      border: `2px solid #E1E1E1`,
     },
   })
 );

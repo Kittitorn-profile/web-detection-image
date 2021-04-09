@@ -3,10 +3,11 @@ import { makeStyles, createStyles } from "@material-ui/core/styles";
 import { Typography, Box, Button } from "@material-ui/core";
 import Alert from "@material-ui/lab/Alert";
 const ImagePicker = (props) => {
-  const { onClick, value, onClose } = props;
+  const { onClick, value, onClose, dataPoint } = props;
   const classes = useStyles();
   const uploadRef = React.useRef(null);
   const [fileSizeErrorText, setFileSizeErrorText] = React.useState("");
+  const [point, setPoint] = React.useState();
 
   const handleClick = () => {
     uploadRef.current.click();
@@ -25,6 +26,14 @@ const ImagePicker = (props) => {
       setFileSizeErrorText();
     }
   };
+
+  React.useEffect(() => {
+    if (dataPoint) {
+      setPoint(dataPoint.detected_objects);
+    } else {
+      setPoint();
+    }
+  }, [dataPoint]);
 
   return (
     <Box>
@@ -46,6 +55,15 @@ const ImagePicker = (props) => {
             width={value ? "100%" : 100}
             style={{ objectFit: "cover" }}
           />
+          {point &&
+            point.map((i) => (
+              <Box
+                top={i.bounding_box.top}
+                left={i.bounding_box.left}
+                className={classes.overlayBox}
+              />
+            ))}
+
           {!value && <Typography variant="caption">Choose files</Typography>}
         </Box>
         <input
@@ -71,10 +89,10 @@ const useStyles = makeStyles(() =>
       backgroundColor: "#E1E1E1",
       justifyContent: "center",
       alignItems: "center",
-      padding: 16,
       borderRadius: 6,
       height: 400,
       width: "100%",
+      objectFit: "contain",
       overflow: "hidden",
     },
     iconClose: {
@@ -86,6 +104,12 @@ const useStyles = makeStyles(() =>
       borderRadius: 30,
       margin: 8,
       zIndex: 99,
+    },
+    overlayBox: {
+      height: 60,
+      width: 60,
+      position: "absolute",
+      border: `2px solid red`,
     },
   })
 );
