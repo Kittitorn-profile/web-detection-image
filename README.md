@@ -1,1 +1,1 @@
-# wed-detec
+# web-detection

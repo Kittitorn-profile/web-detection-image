@@ -1,0 +1,24 @@
+{
+  "name": "web-detect",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@babel/core": "^7.13.15",
+    "@babel/plugin-proposal-decorators": "^7.13.15",
+    "@material-ui/core": "^4.11.3",
+    "@material-ui/lab": "^4.0.0-alpha.57",
+    "@nipacloud/nvision": "^0.1.7",
+    "axios": "^0.21.1",
+    "next": "10.1.3",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "react-webcam": "^5.2.3",
+    "request": "^2.88.2",
+    "styled-components": "^5.2.3"
+  }
+}
