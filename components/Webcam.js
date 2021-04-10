@@ -14,11 +14,67 @@ const WebcamCapture = (props) => {
   const classes = useStyles();
   const webcamRef = React.useRef(null);
   const [point, setPoint] = React.useState();
+  const [imgWidth, setWidth] = React.useState();
+  const [imgHeight, setHeight] = React.useState();
 
   const handleOnCLick = () => {
     const imageSrc = webcamRef.current.getScreenshot();
     onClick(imageSrc);
   };
+
+  const renderColor = (i) => {
+    if (i === "human") {
+      return "#F10505 ";
+    } else if (i === "accessory") {
+      return "#FB9501";
+    } else if (i === "animal") {
+      return "#0000DF";
+    } else if (i === "food") {
+      return "#29DF00";
+    } else if (i === "kitchenware") {
+      return "#7B05F1 ";
+    } else if (i === "furniture") {
+      return "#E6F105";
+    } else if (i === "electronic") {
+      return "#DF00AD";
+    } else if (i === "sport") {
+      return "#00DFC4";
+    } else {
+      return "#333333";
+    }
+  };
+
+  const handleOverlay = (i) => {
+    let cx = document.querySelector("canvas").getContext("2d");
+    cx.strokeStyle = renderColor(i.parent);
+    cx.lineWidth = 4;
+    cx.strokeRect(
+      i.bounding_box.left,
+      i.bounding_box.top,
+      i.bounding_box.right,
+      i.bounding_box.bottom
+    );
+  };
+
+  const fill_canvas = (img, width, height) => {
+    if (img) {
+      setWidth(width);
+      setHeight(height);
+      var canvas = document.getElementById("canvas");
+      var ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+    }
+  };
+
+  React.useEffect(() => {
+    if (value) {
+      const img = new Image();
+      img.onload = function () {
+        fill_canvas(img, this.width, this.height);
+      };
+      img.src = value;
+    }
+  }, [value]);
 
   React.useEffect(() => {
     if (dataPoint) {
@@ -32,20 +88,13 @@ const WebcamCapture = (props) => {
     <div className={classes.container}>
       {value ? (
         <Box display="flex" flexDirection="column">
-          <img
-            src={value ? value : "../../camera-line.svg"}
-            height={value ? "100%" : 100}
-            width={value ? "100%" : 100}
-            style={{ objectFit: "cover", borderRadius: 6 }}
+          <canvas
+            id="canvas"
+            width={imgWidth}
+            height={imgHeight}
+            style={{ objectFit: "cover" }}
           />
-          {point &&
-            point.map((i) => (
-              <Box
-                top={i.bounding_box.top}
-                left={i.bounding_box.left}
-                className={classes.overlayBox}
-              />
-            ))}
+          {point && point.map((i) => handleOverlay(i))}
         </Box>
       ) : (
         <Webcam
@@ -57,7 +106,6 @@ const WebcamCapture = (props) => {
           videoConstraints={videoConstraints}
         />
       )}
-
       <Box marginY={1} className={classes.btn}>
         {value ? (
           <Box onClick={onClose}>
@@ -86,7 +134,7 @@ const useStyles = makeStyles(() =>
       display: "flex",
       backgroundColor: "#E1E1E1",
       borderRadius: 6,
-      height: 400,
+      minHeight: 400,
       objectFit: "contain",
     },
     btn: {
@@ -96,12 +144,10 @@ const useStyles = makeStyles(() =>
     iconClose: {
       height: 40,
       width: 40,
-      position: "absolute",
       backgroundColor: "#ffffff",
       cursor: "pointer",
       borderRadius: 30,
       margin: 8,
-      zIndex: 99,
     },
     overlayBox: {
       height: 60,

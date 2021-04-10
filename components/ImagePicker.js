@@ -8,24 +8,82 @@ const ImagePicker = (props) => {
   const uploadRef = React.useRef(null);
   const [fileSizeErrorText, setFileSizeErrorText] = React.useState("");
   const [point, setPoint] = React.useState();
+  const [imgWidth, setWidth] = React.useState();
+  const [imgHeight, setHeight] = React.useState();
 
   const handleClick = () => {
     uploadRef.current.click();
   };
 
   const handleChange = (e) => {
-    const fileUploaded = e.target.files[0];
-    if (fileUploaded && fileUploaded.size > 1000000) {
-      setFileSizeErrorText(`The file size is more than 1MB.`);
+    var fileUploaded = e.target.files[0];
+    if (fileUploaded) {
+      if (fileUploaded.size > 1000000) {
+        setFileSizeErrorText(`The file size is more than 1MB.`);
+      } else {
+        var reader = new FileReader();
+        reader.onloadend = () => {
+          onClick(reader.result);
+        };
+        reader.readAsDataURL(fileUploaded);
+        setFileSizeErrorText();
+      }
     } else {
-      var reader = new FileReader();
-      reader.onloadend = () => {
-        onClick(reader.result);
-      };
-      reader.readAsDataURL(fileUploaded);
-      setFileSizeErrorText();
+      var fileUploaded = undefined;
     }
   };
+
+  const renderColor = (i) => {
+    if (i === "human") {
+      return "#F10505 ";
+    } else if (i === "accessory") {
+      return "#FB9501";
+    } else if (i === "animal") {
+      return "#0000DF";
+    } else if (i === "food") {
+      return "#29DF00";
+    } else if (i === "kitchenware") {
+      return "#7B05F1 ";
+    } else if (i === "furniture") {
+      return "#E6F105";
+    } else if (i === "electronic") {
+      return "#DF00AD";
+    } else if (i === "sport") {
+      return "#00DFC4";
+    } else {
+      return "#FFFFFF";
+    }
+  };
+
+  const handleOverlay = (i) => {
+    let cx = document.querySelector("canvas").getContext("2d");
+    cx.strokeStyle = renderColor(i.parent);
+    cx.lineWidth = 4;
+    cx.strokeRect(
+      i.bounding_box.left,
+      i.bounding_box.top,
+      i.bounding_box.right,
+      i.bounding_box.bottom
+    );
+  };
+
+  const fill_canvas = (img, width, height) => {
+    setWidth(width);
+    setHeight(height);
+    var canvas = document.getElementById("canvas");
+    // canvas.width = width / 2;
+    // canvas.height = height / 2;
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+  };
+
+  React.useEffect(() => {
+    const img = new Image();
+    img.onload = function () {
+      fill_canvas(img, this.width, this.height);
+    };
+    img.src = value ? value : "../../camera-line.svg";
+  }, [value]);
 
   React.useEffect(() => {
     if (dataPoint) {
@@ -47,30 +105,20 @@ const ImagePicker = (props) => {
           />
         </Box>
       )}
-      <Button className={classes.container} onClick={() => handleClick()}>
+      <Button
+        className={classes.container}
+        onClick={() => !value && handleClick()}
+      >
         <Box display="flex" flexDirection="column">
-          <img
-            src={value ? value : "../../camera-line.svg"}
-            height={value ? "100%" : 100}
-            width={value ? "100%" : 100}
-            style={{ objectFit: "cover" }}
-          />
-          {point &&
-            point.map((i) => (
-              <Box
-                top={i.bounding_box.top}
-                left={i.bounding_box.left}
-                className={classes.overlayBox}
-              />
-            ))}
-
+          <canvas id="canvas" width={imgWidth} height={imgHeight} />
+          {point && point.map((i) => handleOverlay(i))}
           {!value && <Typography variant="caption">Choose files</Typography>}
         </Box>
         <input
           type="file"
-          onChange={(e) => handleChange(e)}
+          onChange={(file) => handleChange(file)}
           ref={uploadRef}
-          accept="image/*"
+          accept=".png, .jpg, .jpeg"
           style={{ display: "none" }}
         />
       </Button>
@@ -90,10 +138,8 @@ const useStyles = makeStyles(() =>
       justifyContent: "center",
       alignItems: "center",
       borderRadius: 6,
-      height: 400,
+      minHeight: 400,
       width: "100%",
-      objectFit: "contain",
-      overflow: "hidden",
     },
     iconClose: {
       height: 40,
@@ -106,8 +152,6 @@ const useStyles = makeStyles(() =>
       zIndex: 99,
     },
     overlayBox: {
-      height: 60,
-      width: 60,
       position: "absolute",
       border: `2px solid red`,
     },

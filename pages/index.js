@@ -9,7 +9,12 @@ import {
   CircularProgress,
 } from "@material-ui/core";
 import Alert from "@material-ui/lab/Alert";
-import { makeStyles, withStyles, createStyles } from "@material-ui/core/styles";
+import {
+  makeStyles,
+  withStyles,
+  createStyles,
+  Theme,
+} from "@material-ui/core/styles";
 import { Webcam, ImagePicker } from "../components";
 import axios from "axios";
 
@@ -41,6 +46,7 @@ const index = () => {
           },
         };
         const result = await axios(upload);
+        setData(result.data);
 
         const arraylist = [];
         result.data &&
@@ -49,7 +55,7 @@ const index = () => {
           );
         const list = [...new Set(arraylist)];
         setDataItemList(list);
-        setData(result.data);
+
         setLoading(false);
       } catch (e) {
         setError("Can not be Detection");
@@ -65,6 +71,15 @@ const index = () => {
     setError();
   };
 
+  const renderProgress = (item) => {
+    return (
+      <BorderLinearProgress
+        variant="determinate"
+        value={item.confidence && Math.round(item.confidence * 100)}
+      />
+    );
+  };
+
   React.useEffect(() => {
     handleClear();
   }, [isOpen]);
@@ -77,13 +92,16 @@ const index = () => {
             Detection
           </Typography>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12}>
           <Box display={"flex"} alignItems={"center"} flexDirection={"row"}>
             <Box>
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  handleClear();
+                }}
                 disabled={!isOpen}
               >
                 <Typography variant="caption">Browse file</Typography>
@@ -93,7 +111,10 @@ const index = () => {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => setIsOpen(true)}
+                onClick={() => {
+                  setIsOpen(true);
+                  handleClear();
+                }}
                 disabled={isOpen}
               >
                 <Typography variant="caption">webcam</Typography>
@@ -102,103 +123,89 @@ const index = () => {
           </Box>
         </Grid>
         <Grid item xs={12} sm={6}>
-          <Typography variant="h6">Analyzed Results</Typography>
+          <Card className={classes.card}>
+            {isOpen ? (
+              <Webcam
+                value={selectedFile}
+                onClick={(e) => handleData(e)}
+                onClose={() => handleClear()}
+                dataPoint={dataImg}
+              />
+            ) : (
+              <ImagePicker
+                value={selectedFile}
+                onClick={(e) => handleData(e)}
+                onClose={() => handleClear()}
+                dataPoint={dataImg}
+              />
+            )}
+          </Card>
         </Grid>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <Card className={classes.card}>
-              {isOpen ? (
-                <Webcam
-                  value={selectedFile}
-                  onClick={(e) => handleData(e)}
-                  onClose={() => handleClear()}
-                  dataPoint={dataImg}
-                />
+        <Grid item xs={12} sm={6}>
+          <Typography variant="h6">Analyzed Results</Typography>
+          {dataImg && dataImg ? (
+            <Box p={3}>
+              {error ? (
+                <Alert severity="error">{error}</Alert>
               ) : (
-                <ImagePicker
-                  value={selectedFile}
-                  onClick={(e) => handleData(e)}
-                  onClose={() => handleClear()}
-                  dataPoint={dataImg}
-                />
-              )}
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Card className={classes.card}>
-              {isLoading ? (
-                <Box className={classes.cardCenter}>
-                  <CircularProgress />
+                <Box display="flex" flexDirection="column">
+                  <Box display="flex" flexDirection="row">
+                    {dataItemList &&
+                      dataItemList.length > 0 &&
+                      dataItemList.map((item) => (
+                        <Box
+                          display="flex"
+                          flexDirection="column"
+                          marginRight={2}
+                          justifyContent="center"
+                          alignItems="center"
+                        >
+                          <img
+                            src={
+                              item
+                                ? `../../${item}.svg`
+                                : "../../user-3-fill.svg"
+                            }
+                            height={30}
+                            width={30}
+                          />
+                          <Typography variant="caption">{item}</Typography>
+                        </Box>
+                      ))}
+                  </Box>
+                  <Box className={classes.cardRight} marginTop={3}>
+                    {dataImg &&
+                      dataImg.detected_objects.length > 0 &&
+                      dataImg.detected_objects.map((item) => (
+                        <Box>
+                          <Box
+                            display="flex"
+                            flexDirection="row"
+                            justifyContent="space-between"
+                          >
+                            <Typography variant="h6">{item.name}</Typography>
+                            <Typography variant="h6">
+                              {item.confidence &&
+                                Math.round(item.confidence * 100) + "%"}
+                            </Typography>
+                          </Box>
+                          {renderProgress(item)}
+                        </Box>
+                      ))}
+                  </Box>
                 </Box>
-              ) : (
-                <>
-                  {error ? (
-                    <Box className={classes.cardCenter}>
-                      <img src={"../../cry.svg"} height={200} width={200} />
-                      <Box marginTop={1}>
-                        <Alert severity="error">{error}</Alert>
-                      </Box>
-                    </Box>
-                  ) : (
-                    <Box display="flex" flexDirection="column">
-                      <Box display="flex" flexDirection="row">
-                        {dataItemList &&
-                          dataItemList.length > 0 &&
-                          dataItemList.map((item) => (
-                            <Box
-                              display="flex"
-                              flexDirection="column"
-                              marginRight={2}
-                              justifyContent="center"
-                              alignItems="center"
-                            >
-                              <img
-                                src={
-                                  item
-                                    ? `../../${item}.svg`
-                                    : "../../user-3-fill.svg"
-                                }
-                                height={30}
-                                width={30}
-                              />
-                              <Typography variant="caption">{item}</Typography>
-                            </Box>
-                          ))}
-                      </Box>
-                      <Box className={classes.cardRight} marginTop={3}>
-                        {dataImg &&
-                          dataImg.detected_objects.length > 0 &&
-                          dataImg.detected_objects.map((item) => (
-                            <Box>
-                              <Box
-                                display="flex"
-                                flexDirection="row"
-                                justifyContent="space-between"
-                              >
-                                <Typography variant="h6">
-                                  {item.name}
-                                </Typography>
-                                <Typography variant="h6">
-                                  {item.confidence &&
-                                    Math.round(item.confidence * 100) + "%"}
-                                </Typography>
-                              </Box>
-                              <BorderLinearProgress
-                                variant="determinate"
-                                value={
-                                  item.confidence &&
-                                  Math.round(item.confidence * 100)
-                                }
-                              />
-                            </Box>
-                          ))}
-                      </Box>
-                    </Box>
-                  )}
-                </>
               )}
-            </Card>
-          </Grid>
+            </Box>
+          ) : (
+            <Box>
+              <Typography variant="caption">
+                Confidence will display follow the image
+              </Typography>
+              <Box className={classes.cardCenter}>
+                {isLoading && <CircularProgress color="secondary" />}
+              </Box>
+            </Box>
+          )}
         </Grid>
       </Grid>
     </div>
@@ -207,7 +214,7 @@ const index = () => {
 
 export default index;
 
-const useStyles = makeStyles(() =>
+const useStyles = makeStyles((theme) =>
   createStyles({
     container: {
       display: "flex",
@@ -219,10 +226,9 @@ const useStyles = makeStyles(() =>
     card: {
       display: "flex",
       flexDirection: "column",
-      padding: 32,
       backgroundColor: "#fff",
-      height: 400,
-      border: `2px solid #E1E1E1`,
+      minHeight: 400,
+      borderRadius: 6,
       boxShadow: "0 0px 10px 0 rgba(48, 48, 48, 0.2)",
     },
     cardRight: {
@@ -235,13 +241,8 @@ const useStyles = makeStyles(() =>
       justifyContent: "center",
       alignItems: "center",
       padding: 16,
-      height: "100%",
+      height: 400,
       width: "100%",
-    },
-    overlayBox: {
-      height: 100,
-      width: 100,
-      border: `2px solid #E1E1E1`,
     },
   })
 );
@@ -257,6 +258,6 @@ const BorderLinearProgress = withStyles((theme) => ({
   },
   bar: {
     borderRadius: 5,
-    backgroundColor: "#1a90ff",
+    backgroundColor: "green",
   },
 }))(LinearProgress);
