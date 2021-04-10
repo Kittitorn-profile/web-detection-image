@@ -174,7 +174,7 @@ const index = () => {
                       ))}
                   </Box>
                   <Box className={classes.cardRight} marginTop={3}>
-                    {dataImg &&
+                    {dataImg.detected_objects &&
                       dataImg.detected_objects.length > 0 &&
                       dataImg.detected_objects.map((item) => (
                         <Box>

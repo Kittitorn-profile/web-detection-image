@@ -71,8 +71,6 @@ const ImagePicker = (props) => {
     setWidth(width);
     setHeight(height);
     var canvas = document.getElementById("canvas");
-    // canvas.width = width / 2;
-    // canvas.height = height / 2;
     var ctx = canvas.getContext("2d");
     ctx.drawImage(img, 0, 0);
   };
